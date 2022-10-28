@@ -59,7 +59,6 @@ export default new Vuex.Store({
   },
   mutations: {
     [SET_PROFILE_LIST](state: any, playload: any) {
-      console.log(playload)
       state.profiles = playload;
     },
 

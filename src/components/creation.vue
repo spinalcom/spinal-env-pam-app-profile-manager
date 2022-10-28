@@ -23,8 +23,8 @@ with this file. If not, see
 -->
 
 <template>
-  <div class="creationContainer">
-    <v-card class="header">
+  <v-card class="creationContainer">
+    <div class="header">
       <div class="leftDiv">
         <div class="back">
           <v-btn rounded
@@ -35,16 +35,17 @@ with this file. If not, see
             <v-icon left>
               mdi-arrow-left-thin
             </v-icon>
-            BACK
+            Retour
           </v-btn>
         </div>
         <div class="_title">ajouter un profile d'application</div>
         <div class="description">
-          <p>Entrez un nom de profil d'application</p>
+          <p>Entrez un nom de profile d'application</p>
           <p>Sélectionnez son périmètre ci-dessous :</p>
         </div>
         <div class="searchDiv">
           <v-text-field solo
+                        outlined
                         flat
                         label="nom du profil"
                         hide-details="auto"
@@ -55,18 +56,107 @@ with this file. If not, see
       <div class="rightDiv">
         <v-btn class="button"
                color="#14202c"
-               @click="saveProfile">
+               @click="saveProfile"
+               :disabled="disableSaveButton">
           <v-icon class="btnIcon">
             mdi-content-save-outline
           </v-icon>
 
-          Enregister le profil
+          Enregister le profile
         </v-btn>
       </div>
-    </v-card>
+    </div>
 
     <div class="profileContent">
-      <v-card class="tableContent">
+      <TabsComponent :portofolios="portofoliosCopy"
+                     @selectPortofolio="selectPortofolio"
+                     :portofolioSelected="portofolioSelected"
+                     :profileSelected="profileSelected"
+                     :edit="edit" />
+      <!-- <div class="portofolioList">
+        <portofolio-list :portofolios="portofoliosCopy"
+                         @select="selectPortofolio"></portofolio-list>
+      </div>
+
+      <div class="content">
+        <div class="empty"
+             v-if="!portofolioSelected">
+          Selectionnez un portefolio
+        </div>
+
+        <div class="tabs"
+             v-else>
+          <v-tabs v-model="tab"
+                  class="tabsHeader"
+                  background-color="transparent"
+                  color="primary"
+                  grow>
+            <v-tab v-for="item in tabItems"
+                   :key="item">
+              {{ item }}
+            </v-tab>
+          </v-tabs>
+
+          <v-tabs-items v-model="tab"
+                        class="tabsItems">
+
+            <v-tab-item>
+              <double-table-component :edit="edit"
+                                      :title="'selectionnez les routes de portefolio à autoriser'"
+                                      :items="portofolioSelected.apis"
+                                      :headers="headers"
+                                      :childrenKey="'children'"
+                                      :itemToSelect="getItemToSelect(portofolioSelected.id)">
+              </double-table-component>
+            </v-tab-item>
+
+            <v-tab-item>
+              <div class="buildingTabsDiv"
+                   v-if="getPortofolioBuilding.length > 0">
+                <v-tabs-items v-model="buildingTab"
+                              class="buildingTabItems">
+                  <v-tab-item v-for="(item,index) in getPortofolioBuilding"
+                              :key="index">
+                    <double-table-component :edit="edit"
+                                            :title="'selectionnez les routes de batiments à authoriser'"
+                                            :items="getBuildingApis"
+                                            :headers="headers"
+                                            :childrenKey="'children'">
+                    </double-table-component>
+                  </v-tab-item>
+                </v-tabs-items>
+
+                <v-tabs v-model="buildingTab"
+                        class="buildingTabs"
+                        background-color="transparent"
+                        color="primary"
+                        grow>
+                  <v-tab v-for="item in getPortofolioBuilding"
+                         :key="item">
+                    {{ item }}
+                  </v-tab>
+                </v-tabs>
+              </div>
+
+              <div class="buildingTabsDiv"
+                   v-else>
+                <div class="empty">
+                  Auncun batiment dans ce portofolio
+                </div>
+              </div>
+
+            </v-tab-item>
+
+          </v-tabs-items>
+        </div>
+
+      </div> -->
+
+      <!-- 
+        Ignorer
+      -->
+
+      <!-- <v-card class="tableContent">
         <TableComponent :headers="tableHeader"
                         :items="portofoliosData"
                         childrenKey="apps"
@@ -78,7 +168,7 @@ with this file. If not, see
         <TableComponent :headers="tableHeader"
                         :items="apisData"
                         childrenKey="children"
-                        title="API's Routes"
+                        title="API's RoutportofolioSelectedes"
                         ref="apisListComponent" />
       </v-card>
 
@@ -88,89 +178,150 @@ with this file. If not, see
                         childrenKey="apps"
                         title="Applications BOS"
                         ref="BosListComponent" />
-      </v-card>
+      </v-card> -->
     </div>
-  </div>
+  </v-card>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
-import { Component, Watch } from "vue-property-decorator";
-import TableComponent from "./tableComponent.vue";
+import { Component, Prop, Watch } from "vue-property-decorator";
+// import DoubleTableComponent from "./tableComponent.vue";
+// import SimpleTableComponent from "./simpleTable.vue";
 import { State } from "vuex-class";
+import TreeViewComponent from "./treeView.vue";
+import PortofolioList from "./portofolioList.vue";
+import TabsComponent from "./tabsComponent.vue";
+
+interface IDataTypes {
+  id: string;
+  apps: string[];
+  apis: string[];
+  buildings?: IDataTypes[];
+}
 
 @Component({
-  props: {
-    edit: { type: Boolean, default: false },
-    profileSelected: {},
-  },
   components: {
-    TableComponent,
+    // DoubleTableComponent,
+    TreeViewComponent,
+    PortofolioList,
+    // SimpleTableComponent,
+    TabsComponent,
   },
 })
-export default class CreationComponent extends Vue {
-  @State portofolios!: any;
-  @State bos!: any;
-  @State context!: any;
-  @State apis!: any;
+class CreationComponent extends Vue {
+  @Prop() edit!: boolean;
+  @Prop() profileSelected!: any;
+
+  tabsObject = Object.freeze({
+    Applications: "Apis de Portefolios",
+    Batiments: "Batiments",
+  });
 
   profileName = "";
-  tableHeader = [
+
+  headers: any = [
     {
-      text: "nom",
-      value: "name",
+      text: "Route",
+      sortable: false,
+      value: "route",
     },
   ];
 
-  portofoliosData = [];
-  bosData = [];
-  apisData = [];
+  @State portofolios!: any;
 
-  oldProfileData: any;
+  portofolioSelected: any = null;
+  portofoliosCopy: any = null;
+
+  tabItems: string[] = Object.values(this.tabsObject);
+
+  tab = this.tabsObject.Applications;
+  buildingTab = null;
+
+  // @State bos!: any;
+  // @State context!: any;
+  // @State apis!: any;
+
+  // tableHeader = [
+  //   {
+  //     text: "nom",
+  //     value: "name",
+  //   },
+  // ];
+
+  // portofoliosData = [];
+  // bosData = [];
+  // apisData = [];
+
+  // oldProfileData: any;
 
   mounted() {
-    console.log("mounted");
+    this._initProfile();
+  }
+
+  selectPortofolio(portofolio: any) {
+    this.portofolioSelected = portofolio;
   }
 
   goBack() {
-    this._initProfile();
     this.$emit("goBack");
   }
 
   saveProfile() {
     if (!this.edit) {
-      this.$emit("create", this._getProfileDataToCreate());
-    } else {
-      this.$emit("edit", {
-        profileId: this.oldProfileData.id,
-        data: this._getDiffBetweenProfile(),
-      });
+      const data = this._getProfileCreationData();
+      return this.$emit("create", data);
     }
 
-    this._initProfile();
+    this.$emit("edit", {
+      profileId: this.profileSelected.id,
+      data: this._getDiffBetweenProfile(),
+    });
+  }
+
+  _initProfile() {
+    this.profileName = !this.edit ? "" : this.profileSelected.name;
+    this.portofoliosCopy = this.createCopy(this.portofolios);
+  }
+
+  createCopy(liste: any) {
+    if (!liste) return [];
+    return liste.map((el: any) => {
+      const copy = this._addSelectedAttr(el);
+      copy.apis = this._formatApis(copy.apis);
+      if (copy.buildings) copy.buildings = this.createCopy(copy.buildings);
+      return copy;
+    });
+  }
+
+  getItemToSelect(parentId: string, isBuilding = false) {
+    if (!this.edit) return [];
+
+    if (!isBuilding) {
+      const found = this.profileSelected.authorized.find(
+        (el: any) => el.id === parentId
+      );
+
+      return found ? found.apis : [];
+    }
   }
 
   ///////////////////////////////////////////////////////////
   //                computed function                      //
   ///////////////////////////////////////////////////////////
 
-  get disableSaveButton() {
-    if (this.profileName.length === 0) return true;
-    const portofolioSelected = this.getItemSelected(
-      this.portofoliosData,
-      "apps"
-    );
-    const bosSelected = this.getItemSelected(this.bosData, "apps");
-
-    return portofolioSelected || bosSelected ? false : true;
+  get getPortofolioBuilding() {
+    return this.portofolioSelected.buildings.map((el: any) => el.name);
   }
 
-  getItemSelected(liste: any[], childrenKey = "children") {
-    return liste.find((el: any) => {
-      if (el.selected) return true;
-      const found = el[childrenKey].find((child: any) => child.selected);
-      return found ? true : false;
-    });
+  get getBuildingApis() {
+    return this.portofolioSelected.buildings[this.buildingTab]?.apis || [];
+  }
+
+  get disableSaveButton() {
+    if (this.profileName.length === 0) return true;
+
+    return false;
   }
 
   ///////////////////////////////////////////////////////////
@@ -178,292 +329,162 @@ export default class CreationComponent extends Vue {
   ///////////////////////////////////////////////////////////
 
   @Watch("portofolios")
-  watchApps(newValue: any) {
-    this._initPortofolios(newValue);
+  watchPortofolios() {
+    this._initProfile();
   }
 
-  @Watch("bos")
-  watchBos(newValue: any) {
-    this._initBos(newValue);
-  }
+  // @Watch("bos")
+  // watchBos(newValue: any) {
+  //   this._initBos(newValue);
+  // }
 
   @Watch("edit")
   watchEditMode(newValue: boolean) {
     this._initProfile();
-
-    if (newValue) {
-      this.profileName = this.profileSelected.name;
-      this.oldProfileData = Object.assign({}, this.profileSelected);
-      this._selectItems(this.profileSelected.authorizedportofolio);
-      this._selectItems(this.profileSelected.authorizedBos, false);
-      this._selectApis(this.profileSelected.authorizedRoutes);
-    }
-  }
-
-  @Watch("apis")
-  watchApis(newValue: any) {
-    this._initApis();
   }
 
   //////////////////////////////////////////
   //              UTILS                   //
   //////////////////////////////////////////
 
-  _getProfileDataToCreate() {
-    return {
-      name:
-        this.profileName.trim().toLocaleLowerCase() || `Profile-${Date.now()}`,
-      authorizePortofolio: this._getPortofolioSelected(this.portofoliosData),
-      authorizeBos: this._getBosSelected(this.bosData),
-      authorizeApis: this._getRoutesSelected(this.apisData),
-    };
-  }
-
   _getDiffBetweenProfile() {
-    const data: any = this._getProfileDataToCreate();
-    data.unauthorizePortofolio = this._getPortofolioToUnauthorize(
-      data.authorizePortofolio
-    );
+    const toCreate = this._getProfileCreationData();
+    const obj = this._convertProfileToObj(this.profileSelected);
 
-    data.unauthorizeBos = this._getBosToUnauthorize(data.authorizeBos);
-    data.unauthorizeApis = this._getRoutesToUnauthorize(data.authorizeApis);
-    return data;
+    for (const portofolio of toCreate.authorize) {
+      const apisIds = portofolio.apisIds;
+      const objData = obj[portofolio.portofolioId].apis || {};
+
+      portofolio.unauthorizeApisIds = this._getApisToUnauthorize(
+        apisIds,
+        objData
+      );
+
+      for (const building of portofolio.building) {
+        const buildingApisIds = building.apisIds;
+        const buildingObjData =
+          obj[portofolio.portofolioId].buildings[building.buildingId] || {};
+
+        building.unauthorizeApisIds = this._getApisToUnauthorize(
+          buildingApisIds,
+          buildingObjData
+        );
+      }
+    }
+
+    return toCreate;
   }
 
-  // init
-  _initProfile(): boolean {
-    this.profileName = "";
-    this._initPortofolios();
-    this._initBos();
-    this._initApis();
+  _getApisToUnauthorize(apis: any, obj: any) {
+    if (Object.keys(obj).length === 0) return [];
+    for (const api of apis) {
+      delete obj[api];
+    }
+
+    return Object.keys(obj);
   }
 
-  _initPortofolios() {
-    this.portofoliosData = this.portofolios.map((el: any) => {
-      return {
-        selected: false,
-        ...el,
-        apps: el.apps.map((app: any) => {
-          app.selected = false;
-          return app;
-        }),
-      };
-    });
-  }
-
-  _initBos(bos?: any) {
-    this.bosData = this.bos.map((el: any) => {
-      return {
-        selected: false,
-        ...el,
-        apps: el.apps.map((app: any) => {
-          app.selected = false;
-          return app;
-        }),
-      };
-    });
-    // if (!bos) {
-    //   bos = this.contextsdata.find(
-    //     (el) => el.name.toLocaleLowerCase() === "buildings"
-    //   );
-    // }
-    // if (bos)
-    //   bos.children = this.bos.map((el: any) => {
-    //     const temp = Object.assign({}, el);
-    //     temp.selected = false;
-    //     return temp;
-    //   });
-  }
-
-  _initApis() {
-    this.apisData = this.apis.reduce((liste: any[], item: any) => {
-      let copy_item = Object.assign({}, item);
-      copy_item.selected = false;
+  _formatApis(apis: any) {
+    return apis.reduce((liste: any[], item: any) => {
+      const copy = this._addSelectedAttr(item);
 
       let found = liste.find((el) => el.name === item.tag);
 
-      if (!found) {
-        found = {
-          selected: false,
-          id: item.tag,
-          name: item.tag,
-          children: [],
-        };
-
-        liste.push(found);
-      }
-
-      found.children.push(copy_item);
-      return liste;
-    }, []);
-
-    console.log(this.apisData);
-  }
-
-  // getSelected
-  _getPortofolioSelected(array: any[]): string[] {
-    return array.reduce((liste: any, item: any) => {
-      const apps = item.selected
-        ? item.apps
-        : item.apps.filter((el: any) => el.selected);
-
-      if (apps && apps.length > 0) {
-        liste.push({
-          portofolioId: item.id,
-          appsIds: apps.map((el: any) => el.id),
-        });
-      }
-      return liste;
-    }, []);
-  }
-
-  _getBosSelected(array: any[]): string[] {
-    return array.reduce((liste: any, item: any) => {
-      const apps = item.selected
-        ? item.apps
-        : item.apps.filter((el: any) => el.selected);
-
-      if (apps && apps.length > 0) {
-        liste.push({
-          buildingId: item.id,
-          appsIds: apps.map((el: any) => el.id),
-        });
-      }
-      return liste;
-    }, []);
-  }
-
-  _getRoutesSelected(array: any): string[] {
-    return array.reduce((liste: any, item: any) => {
-      const routesSelected = item.selected
-        ? item.children
-        : item.children.filter((el: any) => el.selected);
-
-      liste.push(...routesSelected.map((el: any) => el.id));
-      return liste;
-    }, []);
-  }
-
-  // To unauthorize
-  _getPortofolioToUnauthorize(portofolios: any) {
-    return this.oldProfileData.authorizedportofolio.reduce(
-      (liste: any[], item: any) => {
-        console.log(item);
-        const found = portofolios.find(({ portofolioId }: any) => {
-          return portofolioId === item.id;
-        });
-
-        let apps = [];
-
-        if (!found) {
-          apps = item.apps;
-        } else {
-          apps = item.apps.filter(({ id }: { id: string }) => {
-            return !found.appsIds.some((el: string) => el === id);
-          });
-        }
-
-        if (apps.length > 0) {
-          liste.push({
-            portofolioId: item.id,
-            appsIds: apps.map(({ id }: any) => id),
-          });
-        }
-
-        return liste;
-      },
-      []
-    );
-  }
-
-  _getBosToUnauthorize(bos: any) {
-    return this.oldProfileData.authorizedBos.reduce(
-      (liste: any[], item: any) => {
-        const found = bos.find(({ buildingId }: any) => {
-          return buildingId === item.id;
-        });
-
-        let apps = [];
-
-        if (!found) {
-          apps = item.apps;
-        } else {
-          apps = item.apps.filter(({ id }: { id: string }) => {
-            return !found.appsIds.some((el: string) => el === id);
-          });
-        }
-
-        if (apps.length > 0) {
-          liste.push({
-            buildingId: item.id,
-            appsIds: apps.map(({ id }: any) => id),
-          });
-        }
-
-        return liste;
-      },
-      []
-    );
-  }
-
-  _getRoutesToUnauthorize(apis: string[]) {
-    const data = this.oldProfileData.authorizedRoutes.filter(({ id }: any) => {
-      return !apis.includes(id);
-    });
-    return data.map(({ id }: any) => id);
-  }
-
-  // select
-  _selectItems(liste: any[], isPortofolio = true) {
-    let componentName = isPortofolio
-      ? "portofolioListComponent"
-      : "BosListComponent";
-
-    let items = isPortofolio ? this.portofoliosData : this.bosData;
-
-    let component: any = this.$refs[componentName];
-    if (!component) return;
-    if (Array.isArray(component)) component = component[0];
-    const obj: any = {};
-
-    for (const item of liste) {
-      const category =
-        obj[item.id] || items.find((el: any) => el.id === item.id);
-
-      obj[item.id] = category;
-      const apps = item.apps;
-
-      for (const { id } of apps) {
-        const found = category.apps.find((el: any) => el.id === id);
-        if (found) {
-          found.selected = true;
-          component.selectSubItem(category, found);
-        }
-      }
-    }
-  }
-
-  _selectApis(liste: any) {
-    let componentName = "apisListComponent";
-    let component: any = this.$refs[componentName];
-    if (!component) return;
-
-    const obj: any = {};
-    for (const item of liste) {
-      const category =
-        obj[item.tag] || this.apisData.find((el: any) => el.id === item.tag);
-
-      obj[item.tag] = category;
-
-      const found = category.children.find((el: any) => el.id === item.id);
-
       if (found) {
-        found.selected = true;
-        component.selectSubItem(category, found);
+        found.children.push(copy);
+        return liste;
       }
+
+      liste.push({
+        selected: false,
+        name: item.tag,
+        children: [copy],
+      });
+
+      return liste;
+    }, []);
+  }
+
+  _addSelectedAttr(element: any) {
+    const copy = JSON.parse(JSON.stringify(element));
+    copy.selected = false;
+    return copy;
+  }
+
+  _getProfileCreationData() {
+    return this.portofoliosCopy.reduce(
+      (liste: any, item: any) => {
+        const obj = this._formatData(item);
+        liste.authorize.push(obj);
+
+        return liste;
+      },
+      { name: this.profileName, authorize: [] }
+    );
+  }
+
+  _formatData(item: any, idAttr = "portofolioId") {
+    const obj: any = {
+      [idAttr]: item.id,
+      apisIds: this._getSelected(item.apis),
+    };
+
+    if (item.buildings) {
+      obj.building = item.buildings.map((el: any) =>
+        this._formatData(el, "buildingId")
+      );
     }
+
+    return obj;
+  }
+
+  _getSelected(arr: any) {
+    return arr.reduce((liste: any[], item: any) => {
+      if (item.selected) liste.push(...item.children.map((el: any) => el.id));
+      else
+        liste.push(
+          ...item.children.reduce((l: any, i: any) => {
+            if (i.selected) l.push(i.id);
+            return l;
+          }, [])
+        );
+      return liste;
+    }, []);
+  }
+
+  _convertProfileToObj(profile: any) {
+    console.log(profile);
+    const obj: any = {};
+    for (const { id, apis, buildings } of profile.authorized) {
+      obj[id] = {};
+      obj[id]["apis"] = this._convertApisToObj(apis);
+      obj[id]["buildings"] = this._convertBuildings(buildings);
+    }
+
+    return obj;
+  }
+
+  _convertBuildings(buildings: any) {
+    const obj: { [key: string]: any } = {};
+    for (const { id, apis } of buildings) {
+      obj[id] = this._convertApisToObj(apis);
+    }
+
+    return obj;
+  }
+
+  _convertApisToObj(apis: any) {
+    const obj: { [key: string]: any } = {};
+
+    for (const item of apis) {
+      obj[item.id] = item;
+    }
+
+    return obj;
   }
 }
+
+export default CreationComponent;
 </script>
 
 <style lang="scss" scoped>
@@ -475,12 +496,13 @@ $header-margin-bottom: 10px;
   width: 100%;
   height: calc(100% - #{$header-margin-top});
   margin-top: $header-margin-top !important;
+  background: #f9f9f9;
+  padding: 15px;
+
   .header {
     height: $header-height !important;
     display: flex;
     justify-content: space-between;
-    padding: 10px;
-    background: #f9f9f9;
     margin-bottom: $header-margin-bottom;
     .leftDiv {
       width: 35%;
@@ -519,12 +541,82 @@ $header-margin-bottom: 10px;
   .profileContent {
     width: 100%;
     height: calc(100% - #{$header-height + $header-margin-bottom});
-    display: flex;
-    justify-content: space-between;
-    .tableContent {
-      width: 33%;
-      height: 100%;
-    }
+    // display: flex;
+    // justify-content: space-between;
+
+    // .portofolioList {
+    //   width: 20%;
+    //   height: 100%;
+    //   border-right: 1px solid grey;
+    // }
+
+    // .content {
+    //   width: 79%;
+    //   height: 100%;
+    //   .empty {
+    //     width: 100%;
+    //     height: 100%;
+    //     display: flex;
+    //     align-items: center;
+    //     justify-content: center;
+    //     font-size: 1.6em;
+    //   }
+
+    //   .tabs {
+    //     width: 100%;
+    //     height: 100%;
+
+    //     .tabsHeader {
+    //       width: 100%;
+    //       height: 50px;
+    //     }
+
+    //     .tabsItems {
+    //       width: 100%;
+    //       height: calc(100% - 50px);
+    //       overflow: auto;
+
+    //       // .v-window__container {
+    //       //   height: 100% !important;
+    //       //   background: yellow;
+    //       // }
+
+    //       .buildingTabsDiv {
+    //         width: 100%;
+    //         height: 100%;
+    //         .empty {
+    //           width: 100%;
+    //           height: 100%;
+    //         }
+    //         .buildingTabItems {
+    //           width: 100%;
+    //           height: 100%;
+    //         }
+    //         .buildingTabs {
+    //           width: 100%;
+    //           height: 50px;
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
+
+    // display: flex;
+    // justify-content: space-between;
   }
+}
+</style>
+
+<style>
+.v-window__container {
+  height: 100%;
+}
+
+.v-window-item {
+  height: calc(100% - 50px);
+}
+
+.buildingTabItems .v-window-item {
+  height: 100%;
 }
 </style>

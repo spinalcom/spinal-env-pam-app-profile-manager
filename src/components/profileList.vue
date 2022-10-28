@@ -66,10 +66,12 @@ with this file. If not, see
           <template v-slot:item="{ item }">
             <tr class="itemRow">
               <td>{{item.name}}</td>
-              <td>{{item.authorizedportofolio | length}}</td>
-              <td>{{item.authorizedBos | length}}</td>
-              <td>{{item.authorizedRoutes | length}}</td>
-              <td class="actions">
+              <td>{{item.authorized | length}}</td>
+              <!-- <td>{{item.authorizedBos | length}}</td>
+              <td>{{item.authorizedRoutes | length}}</td> -->
+
+              <td class="actions"
+                  style="background: white; text-align: center; vertical-align: middle">
                 <!-- <v-btn class="actionBtn dark"
                        @click="seeProfile(item)">
                   <v-icon>mdi-eye-outline</v-icon>
@@ -115,12 +117,12 @@ import { __values } from "tslib";
     },
   },
 })
-export default class ProfileListComponent extends Vue {
+class ProfileListComponent extends Vue {
   headers: any[] = [
     { text: "Intitulé", value: "name" },
-    { text: "Portefeuille(s) autorisé(s)", value: "portofolios" },
-    { text: "Bâtiment(s) autorisé(s)", value: "buildings" },
-    { text: "Route(s) autorisée(s)", value: "routes" },
+    { text: "Portefolio(s) autorisé(s)", value: "portofolios" },
+    // { text: "Bâtiment(s) autorisé(s)", value: "buildings" },
+    // { text: "Route(s) autorisée(s)", value: "routes" },
     { text: "Actions", value: "actions" },
   ];
 
@@ -142,6 +144,8 @@ export default class ProfileListComponent extends Vue {
     this.$emit("delete", item);
   }
 }
+
+export default ProfileListComponent;
 </script>
 
 <style lang="scss" scoped>
@@ -214,16 +218,15 @@ $toolbar-height: 30px;
         }
 
         tr.itemRow {
-          height: 70px;
-          background: #fff;
-          margin-bottom: 5px;
           td {
+            height: 70px;
             text-align: center;
             vertical-align: middle;
+            background: #fff;
+            margin-bottom: 5px;
           }
 
           .actions {
-            height: 70px;
             .actionBtn {
               min-width: unset;
               width: 40px !important;

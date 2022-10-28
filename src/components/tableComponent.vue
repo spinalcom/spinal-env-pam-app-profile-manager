@@ -23,7 +23,8 @@ with this file. If not, see
 -->
 
 <template>
-  <div class="tableContainer">
+  <div class="tableContainer"
+       ref="tableContainer">
     <div class="my_title"
          v-if="title">
       {{title}}
@@ -37,6 +38,10 @@ with this file. If not, see
                   :items="items"
                   item-key="name"
                   :expanded="expanded">
+
+      <template v-slot:no-data>
+        Aucune donnée
+      </template>
 
       <template v-slot:header="{ props : { headers } }">
         <thead>
@@ -100,7 +105,7 @@ with this file. If not, see
   
   <script lang="ts">
 import Vue from "vue";
-import { Component } from "vue-property-decorator";
+import { Component, Prop } from "vue-property-decorator";
 
 const TableComponentProps = Vue.extend({
   props: {
@@ -117,6 +122,15 @@ const TableComponentProps = Vue.extend({
 
 @Component
 export default class TableComponent extends TableComponentProps {
+  @Prop() edit!: boolean;
+  @Prop() itemToSelect!: any[];
+
+  mounted() {
+    if (this.edit) {
+      this._selectItemsOnEdit(this.itemToSelect);
+    }
+  }
+
   /////////////////////////////////////////////
   //              Select function            //
   /////////////////////////////////////////////
@@ -175,10 +189,30 @@ export default class TableComponent extends TableComponentProps {
     this.selectCategory(category);
   }
 
+  _selectItemsOnEdit(itemToSelect: any) {
+    const obj: any = {};
+    for (const { tag, id } of itemToSelect) {
+      if (obj[tag]) obj[tag][id] = id;
+      else obj[tag] = { [id]: id };
+    }
+
+    for (const category of this.items) {
+      if (obj[category.name]) {
+        for (const subItem of category.children) {
+          if (obj[category.name][subItem.id]) {
+            subItem.selected = true;
+            this.selectSubItem(category, subItem);
+          }
+        }
+      }
+    }
+  }
+
   /////////////////////////////////////////////
   //              Expand functions           //
   /////////////////////////////////////////////
-  expanded: any[] = this.items || [];
+  // expanded: any[] = this.items || [];
+  expanded: any[] = [];
 
   get expandedArray() {
     return this.expanded;
@@ -220,14 +254,9 @@ $title-background: #14202c;
 
   #table {
     width: 100%;
+    height: 450px;
+    // height: calc(100% - 50px);
     background: transparent !important;
-    max-height: calc(100% - 50px);
-    overflow: auto;
-    // colgroup {
-    //   col {
-    //     width: calc(33%) !important;
-    //   }
-    // }
 
     th.tableHeader {
       // width: calc((100% - #{$expand-column-width}) / 3);

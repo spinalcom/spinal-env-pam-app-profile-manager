@@ -50,6 +50,7 @@ export function deleteAppProfileRequest(profileId: string) {
 
 
 
+
 export function editAppProfileRequest(profileId: string, newData: any) {
     return http.put(`/app_profile/edit_profile/${profileId}`, newData);
 }
