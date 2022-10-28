@@ -284,10 +284,6 @@ class TabsComponent {
     this.selectItems();
   }
 
-  ///////////////////////////////////////////////////////////
-  //                computed function                      //
-  ///////////////////////////////////////////////////////////
-
   get getPortofolioBuilding() {
     return this.portofolioSelected.buildings.map((el: any) => el.name);
   }

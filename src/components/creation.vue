@@ -73,112 +73,6 @@ with this file. If not, see
                      :portofolioSelected="portofolioSelected"
                      :profileSelected="profileSelected"
                      :edit="edit" />
-      <!-- <div class="portofolioList">
-        <portofolio-list :portofolios="portofoliosCopy"
-                         @select="selectPortofolio"></portofolio-list>
-      </div>
-
-      <div class="content">
-        <div class="empty"
-             v-if="!portofolioSelected">
-          Selectionnez un portefolio
-        </div>
-
-        <div class="tabs"
-             v-else>
-          <v-tabs v-model="tab"
-                  class="tabsHeader"
-                  background-color="transparent"
-                  color="primary"
-                  grow>
-            <v-tab v-for="item in tabItems"
-                   :key="item">
-              {{ item }}
-            </v-tab>
-          </v-tabs>
-
-          <v-tabs-items v-model="tab"
-                        class="tabsItems">
-
-            <v-tab-item>
-              <double-table-component :edit="edit"
-                                      :title="'selectionnez les routes de portefolio à autoriser'"
-                                      :items="portofolioSelected.apis"
-                                      :headers="headers"
-                                      :childrenKey="'children'"
-                                      :itemToSelect="getItemToSelect(portofolioSelected.id)">
-              </double-table-component>
-            </v-tab-item>
-
-            <v-tab-item>
-              <div class="buildingTabsDiv"
-                   v-if="getPortofolioBuilding.length > 0">
-                <v-tabs-items v-model="buildingTab"
-                              class="buildingTabItems">
-                  <v-tab-item v-for="(item,index) in getPortofolioBuilding"
-                              :key="index">
-                    <double-table-component :edit="edit"
-                                            :title="'selectionnez les routes de batiments à authoriser'"
-                                            :items="getBuildingApis"
-                                            :headers="headers"
-                                            :childrenKey="'children'">
-                    </double-table-component>
-                  </v-tab-item>
-                </v-tabs-items>
-
-                <v-tabs v-model="buildingTab"
-                        class="buildingTabs"
-                        background-color="transparent"
-                        color="primary"
-                        grow>
-                  <v-tab v-for="item in getPortofolioBuilding"
-                         :key="item">
-                    {{ item }}
-                  </v-tab>
-                </v-tabs>
-              </div>
-
-              <div class="buildingTabsDiv"
-                   v-else>
-                <div class="empty">
-                  Auncun batiment dans ce portofolio
-                </div>
-              </div>
-
-            </v-tab-item>
-
-          </v-tabs-items>
-        </div>
-
-      </div> -->
-
-      <!-- 
-        Ignorer
-      -->
-
-      <!-- <v-card class="tableContent">
-        <TableComponent :headers="tableHeader"
-                        :items="portofoliosData"
-                        childrenKey="apps"
-                        title="Applications PAM"
-                        ref="portofolioListComponent" />
-      </v-card>
-
-      <v-card class="tableContent">
-        <TableComponent :headers="tableHeader"
-                        :items="apisData"
-                        childrenKey="children"
-                        title="API's RoutportofolioSelectedes"
-                        ref="apisListComponent" />
-      </v-card>
-
-      <v-card class="tableContent">
-        <TableComponent :headers="tableHeader"
-                        :items="bosData"
-                        childrenKey="apps"
-                        title="Applications BOS"
-                        ref="BosListComponent" />
-      </v-card> -->
     </div>
   </v-card>
 </template>
@@ -238,23 +132,6 @@ class CreationComponent extends Vue {
   tab = this.tabsObject.Applications;
   buildingTab = null;
 
-  // @State bos!: any;
-  // @State context!: any;
-  // @State apis!: any;
-
-  // tableHeader = [
-  //   {
-  //     text: "nom",
-  //     value: "name",
-  //   },
-  // ];
-
-  // portofoliosData = [];
-  // bosData = [];
-  // apisData = [];
-
-  // oldProfileData: any;
-
   mounted() {
     this._initProfile();
   }
@@ -306,10 +183,6 @@ class CreationComponent extends Vue {
     }
   }
 
-  ///////////////////////////////////////////////////////////
-  //                computed function                      //
-  ///////////////////////////////////////////////////////////
-
   get getPortofolioBuilding() {
     return this.portofolioSelected.buildings.map((el: any) => el.name);
   }
@@ -323,10 +196,6 @@ class CreationComponent extends Vue {
 
     return false;
   }
-
-  ///////////////////////////////////////////////////////////
-  //                Watch function                         //
-  ///////////////////////////////////////////////////////////
 
   @Watch("portofolios")
   watchPortofolios() {
@@ -342,10 +211,6 @@ class CreationComponent extends Vue {
   watchEditMode(newValue: boolean) {
     this._initProfile();
   }
-
-  //////////////////////////////////////////
-  //              UTILS                   //
-  //////////////////////////////////////////
 
   _getDiffBetweenProfile() {
     const toCreate = this._getProfileCreationData();

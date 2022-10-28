@@ -206,7 +206,7 @@ class HomeComponent extends Vue {
 export default HomeComponent;
 </script>
 
-<style  lang="scss" scoped>
+<style  lang="scss">
 $header-height: 60px;
 $page-background: #f5f3f3;
 $header-margin-bottom: 10px;

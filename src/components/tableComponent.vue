@@ -121,7 +121,7 @@ const TableComponentProps = Vue.extend({
 });
 
 @Component
-export default class TableComponent extends TableComponentProps {
+class TableComponent extends TableComponentProps {
   @Prop() edit!: boolean;
   @Prop() itemToSelect!: any[];
 
@@ -131,9 +131,6 @@ export default class TableComponent extends TableComponentProps {
     }
   }
 
-  /////////////////////////////////////////////
-  //              Select function            //
-  /////////////////////////////////////////////
   allCategoriesAreSelected = false;
 
   selectAll() {
@@ -208,9 +205,6 @@ export default class TableComponent extends TableComponentProps {
     }
   }
 
-  /////////////////////////////////////////////
-  //              Expand functions           //
-  /////////////////////////////////////////////
   // expanded: any[] = this.items || [];
   expanded: any[] = [];
 
@@ -227,6 +221,8 @@ export default class TableComponent extends TableComponentProps {
     return this.expanded.find((el: any) => el.name === item.name);
   }
 }
+
+export default TableComponent;
 </script>
   
   <style lang="scss">

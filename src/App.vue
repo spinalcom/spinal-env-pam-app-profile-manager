@@ -23,7 +23,7 @@ with this file. If not, see
 -->
 
 <template>
-  <v-app>
+  <v-app class="appContainer">
     <v-main>
       <HomeComponent />
     </v-main>
@@ -46,3 +46,10 @@ export default Vue.extend({
   }),
 });
 </script>
+
+<style>
+.appContainer {
+  width: 100%;
+  height: 100%;
+}
+</style>
