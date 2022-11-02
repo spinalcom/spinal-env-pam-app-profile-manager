@@ -23,17 +23,18 @@ with this file. If not, see
 -->
 
 <template>
-  <div>View</div>
+  <div>Hello</div>
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import { Component } from "vue-property-decorator";
+export default {};
+// import Vue from "vue";
+// import { Component } from "vue-property-decorator";
 
-@Component({
-  props: {
-    profileSelected: {},
-  },
-})
-export default class ViewComponent extends Vue {}
+// @Component({
+//   props: {
+//     profileSelected: {},
+//   },
+// })
+// export default class ViewComponent extends Vue {}
 </script>
