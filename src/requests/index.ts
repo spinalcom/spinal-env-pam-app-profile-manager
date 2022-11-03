@@ -31,7 +31,11 @@ const baseURL = host.match(new RegExp(endpoint)) ? host : host + endpoint;
 
 
 const http = axios.create({ baseURL });
-
+http.interceptors.request.use((request: any) => {
+    const t = localStorage.getItem('token');
+    if (t) request.headers.common.Authorization = `Bearer ${t}`;
+    return request;
+});
 
 export function getAllAppProfilesRequest() {
     try {
